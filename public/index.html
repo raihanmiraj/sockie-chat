@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sockie Chat</title>
+    <!-- <link rel="stylesheet" href="assets/style.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .title-app {
+        color: gray;
+        font-size: 20px;
+        padding: 0;
+        text-align: center;
+    }
+    .card-text {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+    }
+    input:focus {
+        outline: 0px !important;
+        box-shadow: none !important;
+    }
+    ::-webkit-scrollbar {
+    width: 1px;
+  }
+  
+ 
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+  }
+   
+ 
+  ::-webkit-scrollbar-thumb {
+    background: #888; 
+  }
+  
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }
+  .displaynone{
+      display: none!important;
+  }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div id="noname" class="container">
+        <div class="d-flex justify-content-center" style="padding-top: 100px;">
+          
+            <h1 class="text-muted">Sockie Chat</h1>
+        </div>
+      
+        <div class="position-relative ">
+            <div class="position-absolute top-50 start-50 translate-middle " style="padding-top:200px;">
+   <input type="text" class="form-control" id="name"> <p class="invisible" id="user-exist">The Username Already Use, Try Another</p> 
+                  <div class="d-flex justify-content-center pt-3">
+                    <button onclick="saveName()" type="submit" class="btn btn-primary">Submit</button>
+                  </div>
+                    
+            
+              
+            </div>
+             
+    </div>
+ 
+
+</div>
+ <div id="hasname" class="container displaynone" >
+ <div class="card mx-auto">
+     <div class="card-header bg-transparent">
+         <div class="navbar navbar-expend p-0">
+             <div class="w-100 d-flex justify-content-center align-items-center" style="height: 40px;">
+                
+             <h1 class="title-app">Sockie Chat</h1>
+             </div>
+         </div>
+     </div>
+     <div class="card-body p-4" id="messagebody" style="height:75vh; overflow: auto;margin-bottom: 10px;">
+         <!-- <div class="d-flex align-items-baseline mb-4">
+             <div class="position-relative">
+                 <div class="pe-2">
+                     <div class="card card-text d-inline-block p-2 px-3 m-1"><span class="text-muted">Raihan :</span><br>Hi How are you</div>
+                     <div class="small">01:10PM</div>
+                 </div>
+                </div>
+         </div>
+
+         <div class="d-flex align-items-baseline text-end justify-content-end mb-4">
+             <div class="pe-2"><div class="card card-text d-inline-block p-2 px-2 m-1">
+                 Sure
+             </div><div class="small">02:03PM</div></div>
+         </div> -->
+     </div>
+ <div id="typing" class="invisible" style="margin-bottom:50px;    padding-left: 15px;">
+    <p id="typingp">Typing...</p>
+ </div>
+     <div class="card-footer bg-white position-absolute w-100 bottom-0 m-0 p-1">
+         <div class="input-group">
+            <div for="fileupload" class="input-group-text bg-transparent border-0">
+                <button onclick="document.getElementById('fileupload').click()" class="btn btn-light text-secondary">
+                    <i class="fas fa-paperclip"> </i>
+                  
+                </button>
+            </div>
+            <input id="fileupload" style="display: none;" onchange="photoUploadToServer(this)" type="file"> 
+            <input id="messagebox"   onchange="sendMessage()"  type="text" class="form-control border-0" placeholder="Write a message...">
+            <div class="input-group-text bg-transparent border-0">
+                <button  onclick="sendMessage()"   class="btn btn-primary">send</button>
+               
+            </div>
+         </div>
+     </div>
+
+    </div>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+
+  <script>
+      var myTimeout = undefined;
+     var  typing = false;
+      const getCurrentTime = ()=>{
+          var date = new Date;
+        var hours = date.getHours();
+  var minutes = date.getMinutes();
+  var ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12;
+  hours = hours ? hours : 12;  
+  minutes = minutes < 10 ? '0'+minutes : minutes;
+  var strTime = hours + ':' + minutes + '' + ampm;
+  return strTime;
+      }
+        const scrollDown = ()=>{
+    var messagebody = document.getElementById("messagebody");
+    messagebody.scrollTop = messagebody.scrollHeight;
+}
+const   getName= ()=>{
+    if(localStorage.getItem("sockiechatusername")){
+        return localStorage.getItem("sockiechatusername");
+    }else{
+        return false;
+    }
+
+}
+
+const appendMessage = (name, message, time) =>{
+    $("#messagebody").append('<div class="d-flex align-items-baseline mb-4"><div class="position-relative"><div class="pe-2"><div class="card card-text d-inline-block p-2 px-3 m-1"><span class="text-muted">'+name+' :</span><br>'+message+'</div><div class="small">'+time+'</div></div></div></div>')
+    scrollDown()
+}
+
+const sendMessage=() =>{
+    var message = document.getElementById("messagebox").value ; 
+    document.getElementById("messagebox").focus()
+    var name = getName();
+    if(message!=''){
+        $("#messagebody").append('<div class="d-flex align-items-baseline text-end justify-content-end mb-4"> <div class="pe-2"><div class="card card-text d-inline-block p-2 px-2 m-1">'+message+'</div><div class="small">'+getCurrentTime()+'</div></div></div>') 
+        document.getElementById("messagebox").value = "";
+        socket.emit('send-message', {user:name, message:message})
+      
+    }
+    scrollDown()
+
+ }
+
+
+ const openChatInterface=()=>{
+     var name = document.getElementById("name").value;
+      document.getElementById("noname").classList.toggle("displaynone")
+     document.getElementById("hasname").classList.toggle("displaynone")
+  }
+const newUserJoined = (data)=>{
+    $("#messagebody").append('<p class="text-muted" style="text-align: center;" >'+data+'</p>')
+    scrollDown()
+}
+
+ const saveName = ()=>{
+     var name = document.getElementById("name").value;
+     if(name!=''){
+  socket.emit("new-user",name);
+
+  document.getElementById("noname").classList.toggle("displaynone")
+     document.getElementById("hasname").classList.toggle("displaynone")
+     localStorage.setItem('sockiechatusername', name)
+     }
+ }
+//  if(getName()==false){
+//         socket.on('user-exist', (data)=>{
+//             console.log(data)
+//             if(data==true){
+//                 if(document.getElementById("user-exist").classList.contains('invisible')){
+//                     document.getElementById("user-exist").classList.remove('invisible')
+//                 }
+//             }else{
+//                 if(!document.getElementById("user-exist").classList.contains('invisible')){
+//                     document.getElementById("user-exist").classList.add('invisible')
+//                 }
+//                 document.getElementById("noname").classList.toggle("displaynone")
+//      document.getElementById("hasname").classList.toggle("displaynone")
+//      localStorage.setItem('sockiechatusername', name)
+//             }
+//         })
+//       }
+ if(localStorage.getItem("sockiechatusername")){
+    openChatInterface();
+    setTimeout(function(){
+        socket.emit("new-user",localStorage.getItem("sockiechatusername"));
+    },1000)
+  
+ } 
+</script>
+
+
+<script>
+    const socket = io();
+socket.on('users-noti', (data)=>{
+    newUserJoined(data);
+})
+
+socket.on('load-message', (data)=>{
+    appendMessage(data.user, data.message, data.time)
+})
+
+socket.on('messagesall', (data)=>{
+    console.log(data)
+    var alldata = Object.keys(data).map(key=>{
+        if(getName()== data[key].user){
+            return '<div class="d-flex align-items-baseline text-end justify-content-end mb-4"> <div class="pe-2"><div class="card card-text d-inline-block p-2 px-2 m-1">'+data[key].message+'</div><div class="small">'+data[key].time+'</div></div></div>';
+        }else{
+            return '<div class="d-flex align-items-baseline mb-4"><div class="position-relative"><div class="pe-2"><div class="card card-text d-inline-block p-2 px-3 m-1"><span class="text-muted">'+data[key].user+' :</span><br>'+data[key].message+'</div><div class="small">'+data[key].time+'</div></div></div></div>';
+        }
+    })
+    $("#messagebody").html(alldata)
+})
+const photoUploadToServer = (e)=>{
+    var data =  e.files[0];
+    var reader = new FileReader();
+  reader.onload = function (evt) {
+    var msg = {};
+    msg.file = evt.target.result;
+    msg.fileName = data.name;
+    // socket.emit("base64 file", msg);
+    socket.emit('sendfile',msg)
+    console.log(msg)
+    $("#messagebody")
+    .append(`<div class="d-flex align-items-baseline text-end justify-content-end mb-4"> <div class="pe-2"><div class="card card-text d-inline-block p-2 px-2 m-1"><img style="max-width:300px" class="rounded mx-auto d-block img-fluid img-thumbnail" src=${msg.file} alt="Red dot" /></div><div class="small">${getCurrentTime()}</div></div></div>`);
+    scrollDown();
+   
+  };
+ var url =  reader.readAsDataURL(data);
+
+ }
+socket.on('img', (data) => {
+    $("#messagebody")
+    .append(`<div class="d-flex align-items-baseline mb-4"><div class="position-relative"><div class="pe-2"><div class="card card-text d-inline-block p-2 px-3 m-1"><span class="text-muted">${data.user} :</span><br><img class="rounded mx-auto d-block img-fluid img-thumbnail" style="max-width:300px" src=${data.file} alt="Red dot" /></div><div class="small">${data.time}</div></div></div></div>'`);
+scrollDown()
+ 
+//   $("#messagebody").append(`<img src="${img.src }"/>`)
+});
+
+const input = document.querySelector('#messagebox');
+input.onkeyup = logKey;
+
+function logKey(e) {
+    console.log(e.code)
+ if(e.code=="Enter"){
+    socket.emit('typing', {user:getName(), typing:false})
+ }else{
+    socket.emit('typing', {user:getName(), typing:true})
+ }
+}
+
+ socket.on('display', (data)=>{
+     var typingpeople = data.users;
+     console.log(typingpeople)
+     document.getElementById("typingp").innerHTML = typingpeople.join(",") + ' Typing...'
+       if(data.typing==true ){
+        if(document.getElementById("typing").classList.contains("invisible")){
+                    document.getElementById("typing").classList.remove("invisible");
+                 } 
+                 clearTimeout(myTimeout);
+                 myTimeout = setTimeout(function(){
+                    socket.emit('typing', {user:getName(), typing:false})
+                    console.log("stop")
+                    if(!document.getElementById("typing").classList.contains("invisible")){
+                    document.getElementById("typing").classList.add("invisible");
+                 }
+}, 2000);
+ }else{
+    clearTimeout(myTimeout);
+           
+                 if(!document.getElementById("typing").classList.contains("invisible")){
+                    document.getElementById("typing").classList.add("invisible");
+                 }
+        }
+    
+      })
+
+ 
+ 
+</script>
+</body>
+</html>
