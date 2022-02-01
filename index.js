@@ -97,6 +97,7 @@ app.get("/", (req, res)=>{
     res.sendFile(__dirname+ '/public/index.html');
 });
 
-server.listen(3000, ()=>{
-    console.log("listening Port 3000");
-})
+// server.listen(3000, ()=>{
+//     console.log("listening Port 3000");
+// })
+server.listen(PORT, () => console.log(`Listening on ${PORT}`));
