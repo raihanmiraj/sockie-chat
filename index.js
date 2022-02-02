@@ -3,7 +3,7 @@ const app= express();
 const http = require('http');
 const server = http.createServer(app);
 const {Server} = require("socket.io");
-const io = new Server(server);
+const io = new Server(server,{ cors: { origin: '*' } });
 const users={};
 const messagesarray = [];
 const fs = require('fs');
@@ -97,7 +97,7 @@ app.get("/", (req, res)=>{
     res.sendFile(__dirname+ '/public/index.html');
 });
 
-// server.listen(3000, ()=>{
-//     console.log("listening Port 3000");
-// })
-server.listen(PORT, () => console.log(`Listening on ${PORT}`));
+server.listen(3000, ()=>{
+    console.log("listening Port 3000");
+})
+// server.listen(PORT, () => console.log(`Listening on ${PORT}`));
