@@ -219,7 +219,7 @@ const newUserJoined = (data)=>{
 
 <script>
     // const socket = io('http://localhost:3000', {transports: ['websocket', 'polling', 'flashsocket']});
-    const socket = io('https://greepie.com', {transports: ['websocket', 'polling', 'flashsocket']})
+    const socket = io('https://sockie.vercel.app', {transports: ['websocket', 'polling', 'flashsocket']})
 socket.on('users-noti', (data)=>{
     newUserJoined(data);
 })

@@ -94,7 +94,9 @@ socket.on("disconnect", ()=>{
 
 
 app.get("/", (req, res)=>{
-    res.sendFile(__dirname+ '/public/index.html');
+    // res.sendFile(__dirname+ '/public/index.html');
+    // res.sendFile(__dirname+ '/public/chat.html');
+    res.send('Hello World!')
 });
 
 server.listen(3000, ()=>{
